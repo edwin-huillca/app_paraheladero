@@ -16,13 +16,32 @@ angular.module('app.controllers', [])
 	}
 })
 
-.controller('homeCtrl', function($scope, $cordovaGeolocation, $ionicLoading, $cordovaDevice) {
-
-	var watchOptions = {timeout : 30000, enableHighAccuracy: true};
+.controller('homeCtrl', function($scope, $cordovaGeolocation, $ionicLoading, $cordovaDevice, $ionicPopup) {
+	
+	var watchOptions = {maximumAge: 0, timeout : 20000, enableHighAccuracy: true};
 
 	var watch = $cordovaGeolocation.watchPosition(watchOptions);
 
 	var socket = io.connect('http://stag.chocolatesublime.pe:80');
+
+	//alert('Al activar el botón Usted acepta que la aplicación puede usar las cordenadas de ubicación de su dispositivo móvil para poder ser encontrado por los clientes de Dnofrio.');
+
+	var myPopup = $ionicPopup.show({
+         template: '',
+         title: 'Uso de la aplicación Heladero Dnofrio',
+         subTitle: 'Al activar el botón Usted acepta que la aplicación puede usar las cordenadas de ubicación de su dispositivo móvil para poder ser encontrado por los clientes de Dnofrio.',
+         buttons: [
+            { 	text: 'Cancelar', 
+            	type: 'button-negative', 
+            	onTap: function(e) {
+					ionic.Platform.exitApp();
+                }
+            }, {
+               	text: '<b>Aceptar</b>',
+               	type: 'button-positive'
+            }
+         ]
+    });
 
 	$scope.activate = function(obj){
 		if($('#btnActivate').hasClass('active')){
@@ -33,7 +52,7 @@ angular.module('app.controllers', [])
 		}else{
 			$('#btnActivate').addClass('active');
 			$ionicLoading.show({
-	            template: '<ion-spinner icon="bubbles"></ion-spinner><br/>Acquiring location!'
+	            template: '<ion-spinner icon="bubbles"></ion-spinner><br/>Conectando...'
 	        });
 			
 			socket = io.connect('http://stag.chocolatesublime.pe:80', { 'forceNew': true });
@@ -46,6 +65,7 @@ angular.module('app.controllers', [])
 		    	watch.clearWatch();
 		    	$('#btnActivate').removeClass('active');
 			     console.log(err);
+			     alert('Debe activar el GPS de su dispositivo.');
 			},
 			function(position) {
 			    var lat  = position.coords.latitude,
@@ -57,9 +77,8 @@ angular.module('app.controllers', [])
 				    "long": long
 				};
 
-				//socket.on('connect', function(data) {  
+				//socket.on('connect', function(data) { 
 				  socket.emit('new-message', message);
-				  console.log(message);
 				  $ionicLoading.hide();
 				//});
 			});
