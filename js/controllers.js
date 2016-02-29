@@ -22,7 +22,7 @@ angular.module('app.controllers', [])
 
 	var watch = $cordovaGeolocation.watchPosition(watchOptions);
 
-	var socket = io.connect('http://stag.chocolatesublime.pe:80');
+	var socket = io.connect('https://www.chocolatesublime.pe:443');
 
 	//alert('Al activar el botón Usted acepta que la aplicación puede usar las cordenadas de ubicación de su dispositivo móvil para poder ser encontrado por los clientes de Dnofrio.');
 
@@ -55,7 +55,7 @@ angular.module('app.controllers', [])
 	            template: '<ion-spinner icon="bubbles"></ion-spinner><br/>Conectando...'
 	        });
 			
-			socket = io.connect('http://stag.chocolatesublime.pe:80', { 'forceNew': true });
+			socket = io.connect('https://www.chocolatesublime.pe:443', { 'forceNew': true });
 			//socket.io.reconnect();
 
 			watch = $cordovaGeolocation.watchPosition(watchOptions);
