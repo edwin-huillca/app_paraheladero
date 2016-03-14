@@ -17,16 +17,8 @@ angular.module('app.controllers', [])
 })
 
 .controller('homeCtrl', function($scope, $cordovaGeolocation, $ionicLoading, $cordovaDevice, $ionicPopup) {
-	
-	var watchOptions = {maximumAge: 0, timeout : 20000, enableHighAccuracy: true};
-
-	var watch = $cordovaGeolocation.watchPosition(watchOptions);
-
-	var socket = io.connect('https://www.chocolatesublime.pe:443');
-
-	//alert('Al activar el botón Usted acepta que la aplicación puede usar las cordenadas de ubicación de su dispositivo móvil para poder ser encontrado por los clientes de Dnofrio.');
-
-	var myPopup = $ionicPopup.show({
+	var watchOptions = {maximumAge: 0, timeout : 20000, enableHighAccuracy: true}, watch, socket, first = true,
+		myPopup = $ionicPopup.show({
          template: '',
          title: 'Uso de la aplicación Heladero Dnofrio',
          subTitle: 'Al activar el botón Usted acepta que la aplicación puede usar las cordenadas de ubicación de su dispositivo móvil para poder ser encontrado por los clientes de Dnofrio.',
@@ -50,22 +42,24 @@ angular.module('app.controllers', [])
 			socket.disconnect();
 			$ionicLoading.hide();
 		}else{
-			$('#btnActivate').addClass('active');
 			$ionicLoading.show({
 	            template: '<ion-spinner icon="bubbles"></ion-spinner><br/>Conectando...'
 	        });
 			
-			socket = io.connect('https://www.chocolatesublime.pe:443', { 'forceNew': true });
-			//socket.io.reconnect();
+			if(first)
+				socket = io.connect('https://www.chocolatesublime.pe:443');
+			else
+				socket = io.connect('https://www.chocolatesublime.pe:443', { 'forceNew': true });
 
 			watch = $cordovaGeolocation.watchPosition(watchOptions);
 
 			watch.then(null, function(err) {
-		    	$ionicLoading.hide();
 		    	watch.clearWatch();
+		    	socket.disconnect();
+			    console.log(err);
+			    $ionicLoading.hide();
 		    	$('#btnActivate').removeClass('active');
-			     console.log(err);
-			     alert('Debe activar el GPS de su dispositivo.');
+			    alert('Debe activar el GPS de su dispositivo.');
 			},
 			function(position) {
 			    var lat  = position.coords.latitude,
@@ -77,39 +71,14 @@ angular.module('app.controllers', [])
 				    "long": long
 				};
 
-				//socket.on('connect', function(data) { 
-				  socket.emit('new-message', message);
-				  $ionicLoading.hide();
-				//});
+				first = false;
+
+			  	socket.emit('new-message', message);
+
+			  	$('#btnActivate').addClass('active');
+
+			  	$ionicLoading.hide();
 			});
-
-		    /*
-			var posOptions = {enableHighAccuracy: true, timeout: 20000, maximumAge: 0};
-		    $cordovaGeolocation.getCurrentPosition(posOptions).then(function (position) {
-		        var lat  = position.coords.latitude,
-		         	long = position.coords.longitude,
-		         	udid = $cordovaDevice.getUUID();
-		         
-		        
-
-				socket.on('allClients', function(data) {  
-				  console.log(data);
-				});
-
-				var message = {
-				    lat: lat,
-				    long: long
-				};
-
-				socket.emit('new-message', message);
-
-		        $ionicLoading.hide();           
-		         
-		    }, function(err) {
-		        $ionicLoading.hide();
-		        console.log(err);
-		        alert('Debe activar el GPS del dispositivo');
-		    });*/
 		}
 	}
 
